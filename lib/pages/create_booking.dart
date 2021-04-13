@@ -7,6 +7,9 @@ import 'package:money_saver/common/widgets/common_widget_factory.dart';
 import 'package:money_saver/database/db_instance.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../bean/booking/booking_vo_provider.dart';
+import '../bean/booking/booking_vo_provider.dart';
+
 class CreateBooking extends StatefulWidget {
   final int accountType;
 
@@ -21,7 +24,6 @@ class _CreateBookingState extends State<CreateBooking> {
   double _gridWid;
   double _gridHeight;
   double _containerHeight;
-  double _topHeight;
 
   List<String> keyboard = [
     '7',
@@ -49,9 +51,12 @@ class _CreateBookingState extends State<CreateBooking> {
   DateTime lastDate;
 
   Database db;
-  MarkTypeProvider provider;
+  MarkTypeProvider markProvider;
+  BookingProvider bookingProvider;
   List<MarkTypeVO> markType = [];
   Map<int, MarkTypeVO> markTypeMap = {};
+
+  String toSaveMoney = '0';
 
   @override
   void initState() {
@@ -68,12 +73,13 @@ class _CreateBookingState extends State<CreateBooking> {
         markType: MarkTypeVO.BUY,
         money: 0);
     db = DbInstance().db;
-    provider = MarkTypeProvider();
+    markProvider = MarkTypeProvider();
+    bookingProvider = BookingProvider();
     _getMarkTypes();
   }
 
   _getMarkTypes() {
-    provider.queryList(db).then((value) {
+    markProvider.queryList(db).then((value) {
       if (value != null) {
         value.forEach((element) {
           markType.add(element);
@@ -90,7 +96,6 @@ class _CreateBookingState extends State<CreateBooking> {
     _gridWid = size.width / 4;
     _gridHeight = _gridWid / 1.5;
     _containerHeight = _gridHeight * 4;
-    _topHeight = size.height - _containerHeight - 50.5;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -135,6 +140,9 @@ class _CreateBookingState extends State<CreateBooking> {
                                 width: 24,
                                 height: 24,
                               ),
+                              SizedBox(
+                                width: 10,
+                              ),
                               // title
                               Text(
                                 markTypeMap.isEmpty
@@ -146,7 +154,7 @@ class _CreateBookingState extends State<CreateBooking> {
                               // 金额
                               Expanded(
                                   child: Text(
-                                (toSave == null ? '0' : toSave.getShowMoney()),
+                                toSaveMoney,
                                 textAlign: TextAlign.right,
                               )),
                               SizedBox(
@@ -167,29 +175,39 @@ class _CreateBookingState extends State<CreateBooking> {
                                     mainAxisSpacing: 10),
                             itemBuilder: (ctx, index) {
                               MarkTypeVO mark = markType[index];
-                              return Container(
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8)),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    // 图标
-                                    Image.asset(
-                                      MarkTypeVO.getIconByType(mark.markType),
-                                      width: 20,
-                                      height: 20,
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    // 文字
-                                    Text(
-                                      mark.markTitle,
-                                      style: TextStyle(
-                                          fontSize: 12, color: Colors.black),
-                                    )
-                                  ],
+                              bool selected = toSave.markType == mark.markType;
+                              return GestureDetector(
+                                onTap: () {
+                                  if (!selected) {
+                                    toSave.markType = mark.markType;
+                                    setState(() {});
+                                  }
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      color:
+                                          selected ? Colors.grey : Colors.white,
+                                      borderRadius: BorderRadius.circular(8)),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // 图标
+                                      Image.asset(
+                                        MarkTypeVO.getIconByType(mark.markType),
+                                        width: 30,
+                                        height: 30,
+                                      ),
+                                      SizedBox(
+                                        height: 5,
+                                      ),
+                                      // 文字
+                                      Text(
+                                        mark.markTitle,
+                                        style: TextStyle(
+                                            fontSize: 16, color: Colors.black),
+                                      )
+                                    ],
+                                  ),
                                 ),
                               );
                             },
@@ -199,6 +217,10 @@ class _CreateBookingState extends State<CreateBooking> {
                       ],
                     ),
                   ),
+                ),
+                Container(
+                  height: 0.5,
+                  color: Colors.grey,
                 ),
                 // 时间与备注
                 Container(
@@ -227,7 +249,9 @@ class _CreateBookingState extends State<CreateBooking> {
                           child: Text(
                             (bookTime == null)
                                 ? '时间'
-                                : (bookTime.month.toString() +
+                                : (bookTime.year.toString() +
+                                    '年' +
+                                    bookTime.month.toString() +
                                     '月' +
                                     bookTime.day.toString() +
                                     '日 '),
@@ -261,6 +285,7 @@ class _CreateBookingState extends State<CreateBooking> {
                                         color: Colors.white),
                                     child: TextField(
                                       maxLength: 30,
+                                      autofocus: true,
                                       controller: remarkController,
                                       decoration: InputDecoration(
                                           contentPadding: EdgeInsets.symmetric(
@@ -341,15 +366,25 @@ class _CreateBookingState extends State<CreateBooking> {
                     itemBuilder: (ctx, index) {
                       String text = keyboard[index];
                       bool isComplete = text == '完成';
-                      return Container(
-                        alignment: Alignment.center,
-                        color: (isComplete) ? Colors.grey : Colors.white,
-                        child: Text(
-                          text,
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: isComplete ? Colors.white : Colors.black,
-                              fontWeight: FontWeight.w600),
+                      bool needCalculate = toSaveMoney.contains('+') ||
+                          toSaveMoney.contains('-');
+                      if (needCalculate && isComplete) {
+                        text = '=';
+                      }
+                      return GestureDetector(
+                        onTap: () {
+                          _tapKeyboard(index);
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          color: (isComplete) ? Colors.grey : Colors.white,
+                          child: Text(
+                            text,
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: isComplete ? Colors.white : Colors.black,
+                                fontWeight: FontWeight.w600),
+                          ),
                         ),
                       );
                     },
@@ -359,5 +394,104 @@ class _CreateBookingState extends State<CreateBooking> {
               ],
             ),
     );
+  }
+
+  _tapKeyboard(int index) {
+    switch (index) {
+      case 14:
+        if (toSaveMoney.contains('+') || toSaveMoney.contains('-')) {
+          // 计算并再记
+        } else {
+          // 再记
+        }
+        break;
+      case 15:
+        if (toSaveMoney.contains('+') || toSaveMoney.contains('-')) {
+          // 计算
+
+        } else {
+          // 完成
+          toSave.money = double.tryParse(toSaveMoney);
+          bookingProvider.insert(db, toSave).then((value) {
+            Navigator.pop(context, true);
+          });
+        }
+        break;
+      case 3:
+      case 7:
+      case 11:
+      case 12:
+        _inputOperator(index);
+        break;
+      default:
+        // 输入数字 // 如果已经是2位小数就不允许输入
+        if (!toSaveMoney.endsWith('+') && !toSaveMoney.endsWith('-')) {
+          int lastDotIndex = toSaveMoney.lastIndexOf('.');
+          if (lastDotIndex > 0) {
+            String afterLastDot = toSaveMoney.substring(lastDotIndex + 1);
+            if (afterLastDot.length == 2) {
+              return;
+            }
+          }
+        }
+        String value = keyboard[index];
+        if (toSaveMoney == '0') {
+          toSaveMoney = value;
+        } else {
+          toSaveMoney = toSaveMoney + value;
+        }
+        setState(() {});
+    }
+  }
+
+  _inputOperator(int index) {
+    switch (index) {
+      case 3:
+        // 删除
+        if (toSaveMoney.length == 1) {
+          if (toSaveMoney != '0') {
+            toSaveMoney = '0';
+            setState(() {});
+          }
+        } else {
+          toSaveMoney = toSaveMoney.substring(0, toSaveMoney.length - 1);
+          setState(() {});
+        }
+        break;
+      case 7:
+        // +
+        if (toSaveMoney.endsWith('+')) {
+          return;
+        }
+        if (toSaveMoney.endsWith('-')) {
+          toSaveMoney = toSaveMoney.substring(0, toSaveMoney.length - 1) + '+';
+          setState(() {});
+          return;
+        }
+        toSaveMoney = toSaveMoney + '+';
+        break;
+      case 11:
+        // -
+        if (toSaveMoney.endsWith('-')) {
+          return;
+        }
+        if (toSaveMoney.endsWith('+')) {
+          toSaveMoney = toSaveMoney.substring(0, toSaveMoney.length - 1) + '-';
+          setState(() {});
+          return;
+        }
+        toSaveMoney = toSaveMoney + '-';
+        break;
+      case 12:
+        //.
+        if (toSaveMoney.endsWith('+') ||
+            toSaveMoney.endsWith('-') ||
+            toSaveMoney.endsWith('.')) {
+          return;
+        }
+        toSaveMoney = toSaveMoney + '.';
+        break;
+    }
+    setState(() {});
   }
 }

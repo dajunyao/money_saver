@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:money_saver/bean/booking/booking_vo.dart';
 import 'package:money_saver/bean/booking/booking_vo_provider.dart';
+import 'package:money_saver/bean/marktype/mark_type_vo.dart';
 import 'package:money_saver/common/widgets/common_widget_factory.dart';
 import 'package:money_saver/database/db_instance.dart';
 import 'package:money_saver/pages/create_booking.dart';
 import 'package:sqflite/sqflite.dart';
+
+import '../bean/booking/booking_vo.dart';
 
 class BookingList extends StatefulWidget {
   final int accountType;
@@ -87,12 +90,47 @@ class _BookingListState extends State<BookingList> {
     } else {
       return ListView.separated(
           itemBuilder: (ctx, index) {
-            String json = bookingList[index].toJson().toString();
-            return Container(
-              color: Colors.blue,
-              child: Text(
-                json,
-                style: TextStyle(fontSize: 14, color: Colors.black),
+            BookingVO booking = bookingList[index];
+            return GestureDetector(
+              onTap: () {
+                // TODO 修改或删除
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+                margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: Colors.grey,
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 15,
+                    ),
+                    // 图标
+                    Image.asset(
+                      MarkTypeVO.getIconByType(booking.markType),
+                      width: 24,
+                      height: 24,
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    // title
+                    Text(
+                      '111111111',
+                    ),
+                    // 金额
+                    Expanded(
+                        child: Text(
+                      booking.money.toString(),
+                      textAlign: TextAlign.right,
+                    )),
+                    SizedBox(
+                      width: 15,
+                    ),
+                  ],
+                ),
               ),
             );
           },

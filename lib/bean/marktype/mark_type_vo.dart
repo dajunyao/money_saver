@@ -4,13 +4,13 @@ part 'mark_type_vo.g.dart';
 
 @JsonSerializable()
 class MarkTypeVO {
-  static const int BUY = 0;
-  static const int CAR = 1;
-  static const int CLOTHES = 2;
-  static const int EAT = 3;
-  static const int HOUSE = 4;
-  static const int PET = 5;
-  static const int TRAFFIC = 0;
+  static const int BUY = 1;
+  static const int CAR = 2;
+  static const int CLOTHES = 3;
+  static const int EAT = 4;
+  static const int HOUSE = 5;
+  static const int PET = 6;
+  static const int TRAFFIC = 7;
 
   static String getIconByType(int markType) {
     switch (markType) {
@@ -27,7 +27,7 @@ class MarkTypeVO {
       case PET:
         return 'images/ic_pets.png';
       case TRAFFIC:
-        return 'images/ic_traffic.png';
+        return 'images/ic_public_traffic.png';
     }
     return 'images/ic_buy.png';
   }

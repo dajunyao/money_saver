@@ -13,7 +13,7 @@ BookingVO _$BookingVOFromJson(Map<String, dynamic> json) {
     inOutType: json['inOutType'] as int,
     markType: json['markType'] as int,
     bookTime: json['bookTime'] as int,
-    money: json['money'] as int,
+    money: json['money'] as num,
     remark: json['remark'] as String,
   );
 }

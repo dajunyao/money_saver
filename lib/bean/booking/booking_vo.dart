@@ -20,7 +20,7 @@ class BookingVO {
   int bookTime;
 
   // 记账金额 // 存储到数据库时 * 100
-  int money;
+  num money;
 
   // 备注
   String remark;
@@ -34,14 +34,6 @@ class BookingVO {
     this.money,
     this.remark,
   });
-
-  String getShowMoney() {
-    if (money == null) {
-      return '0';
-    }
-    double real = money / 100;
-    return real.toString();
-  }
 
   factory BookingVO.fromJson(Map<String, dynamic> json) =>
       _$BookingVOFromJson(json);

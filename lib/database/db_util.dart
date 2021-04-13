@@ -7,12 +7,9 @@ class DBUtil {
       'CREATE TABLE $BOOK_TABLE(id INTEGER PRIMARY KEY, '
       'accountType INTEGER, '
       'inOutType INTEGER,'
+      'markType INTEGER,'
       'bookTime INTEGER, '
-      'money INTEGER, '
-      'iconType INTEGER,'
-      'type INTEGER,'
-      'title TEXT,'
-      'custom INTEGER,'
+      'money NUMERIC, '
       'remark TEXT)';
 
   static const String CREATE_ACCOUNT_TABLE =
