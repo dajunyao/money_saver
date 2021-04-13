@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:money_saver/bean/account/account_type_vo.dart';
 import 'package:money_saver/bean/account/account_type_vo_provider.dart';
 import 'package:money_saver/database/db_instance.dart';
-import 'package:money_saver/pages/book_homepage.dart';
+import 'package:money_saver/pages/booking_list.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'create_account.dart';
@@ -37,7 +37,7 @@ class _WelcomeState extends State<Welcome> {
       // 跳转本地记录的上次访问的账本
       int accountType = accounts.first.accountType;
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (ctx) {
-        return BookHomepage(accountType);
+        return BookingList(accountType);
       }));
     }
   }

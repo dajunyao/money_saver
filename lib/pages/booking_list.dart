@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:money_saver/bean/booking/booking_vo.dart';
 import 'package:money_saver/bean/booking/booking_vo_provider.dart';
+import 'package:money_saver/common/widgets/common_widget_factory.dart';
 import 'package:money_saver/database/db_instance.dart';
+import 'package:money_saver/pages/create_booking.dart';
 import 'package:sqflite/sqflite.dart';
 
-class BookHomepage extends StatefulWidget {
+class BookingList extends StatefulWidget {
   final int accountType;
 
-  BookHomepage(this.accountType);
+  BookingList(this.accountType);
 
   @override
-  _BookHomepageState createState() => _BookHomepageState();
+  _BookingListState createState() => _BookingListState();
 }
 
-class _BookHomepageState extends State<BookHomepage> {
+class _BookingListState extends State<BookingList> {
   Database db;
   BookingProvider provider;
 
@@ -41,46 +43,46 @@ class _BookHomepageState extends State<BookHomepage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+          title: CommonWidgets.getAppbar('记账单'),
+          backgroundColor: Colors.grey,
+        ),
         body: _buildBody(),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            BookingVO record = BookingVO.getTestData();
-            provider.insert(db, record);
-            _getLatestData();
+            // 添加一笔记账
+            Navigator.push(context, MaterialPageRoute(builder: (ctx) {
+              return CreateBooking(widget.accountType);
+            })).then((value) {
+              if (value ?? false) {
+                _getLatestData();
+              }
+            });
           },
-          child: Icon(Icons.add),
+          backgroundColor: Colors.grey,
+          child: Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
         bottomNavigationBar: BottomAppBar(
+          color: Colors.white,
           shape: CircularNotchedRectangle(),
           child: Container(
-            height: 40,
-            child: Row(
-              children: [
-                Expanded(child: Icon(Icons.add)),
-                Expanded(child: Icon(Icons.delete)),
-              ],
-            ),
+            height: 50,
           ),
-        )
-        // BottomNavigationBar(
-        //   items: [
-        //     BottomNavigationBarItem(icon: Icon(Icons.add), label: 'add'),
-        //     BottomNavigationBarItem(icon: Icon(Icons.delete), label: 'del')
-        //   ],
-        //   backgroundColor: Colors.yellow,
-        // ),
-        // bottomNavigationBar: BottomNavigationBar(
-        //
-        // ),
-        );
+        ));
   }
 
   Widget _buildBody() {
     if (db == null || bookingList.isEmpty) {
       return Container(
         alignment: Alignment.center,
-        child: Text('getting data'),
+        child: Text(
+          '快来记下第一笔吧...',
+          style: TextStyle(fontSize: 20, color: Colors.black),
+        ),
       );
     } else {
       return ListView.separated(

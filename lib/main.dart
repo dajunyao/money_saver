@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:money_saver/pages/book_homepage.dart';
+import 'package:money_saver/pages/booking_list.dart';
 import 'package:money_saver/pages/welcome.dart';
 
 void main() {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:money_saver/bean/account/account_type_vo.dart';
 import 'package:money_saver/bean/account/account_type_vo_provider.dart';
 import 'package:money_saver/database/db_instance.dart';
-import 'package:money_saver/pages/book_homepage.dart';
+import 'package:money_saver/pages/booking_list.dart';
 
 class CreateAccount extends StatefulWidget {
   @override
@@ -58,7 +58,7 @@ class _CreateAccountState extends State<CreateAccount> {
                     provider.insert(DbInstance().db, save);
                     Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (ctx) {
-                      return BookHomepage(type);
+                      return BookingList(type);
                     }));
                     saving = false;
                   }
