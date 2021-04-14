@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:money_saver/bean/booking/booking_vo.dart';
 import 'package:money_saver/bean/booking/booking_vo_provider.dart';
 import 'package:money_saver/bean/marktype/mark_type_vo.dart';
+import 'package:money_saver/bean/marktype/mark_type_vo_provider.dart';
 import 'package:money_saver/common/widgets/common_widget_factory.dart';
 import 'package:money_saver/database/db_instance.dart';
 import 'package:money_saver/pages/create_booking.dart';
@@ -20,14 +21,28 @@ class BookingList extends StatefulWidget {
 
 class _BookingListState extends State<BookingList> {
   Database db;
-  BookingProvider provider;
+  BookingProvider bookingProvider;
+  MarkTypeProvider markTypeProvider;
 
   @override
   void initState() {
     super.initState();
     db = DbInstance().db;
-    provider = BookingProvider();
-    _getLatestData();
+    bookingProvider = BookingProvider();
+    markTypeProvider = MarkTypeProvider();
+    _getMarkType();
+  }
+
+  Map<int, MarkTypeVO> markTypeMap = {};
+
+  _getMarkType() async {
+    List<MarkTypeVO> markType = await markTypeProvider.queryList(db);
+    if (markType != null) {
+      markType.forEach((element) {
+        markTypeMap[element.markType] = element;
+      });
+      _getLatestData();
+    }
   }
 
   List<BookingVO> bookingList = [];
@@ -35,7 +50,7 @@ class _BookingListState extends State<BookingList> {
   _getLatestData() async {
     int now = DateTime.now().millisecondsSinceEpoch;
     List<BookingVO> result =
-        await provider.queryList(db, now, 30, widget.accountType);
+        await bookingProvider.queryList(db, now, 30, widget.accountType);
     if (result != null && result.isNotEmpty) {
       bookingList.clear();
       bookingList.addAll(result);
@@ -91,18 +106,21 @@ class _BookingListState extends State<BookingList> {
       return ListView.separated(
           itemBuilder: (ctx, index) {
             BookingVO booking = bookingList[index];
+            String markTitle = markTypeMap[booking.markType]?.markTitle ?? '';
             return GestureDetector(
               onTap: () {
                 // TODO 修改或删除
               },
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+                height: 70,
+                padding: EdgeInsets.symmetric(horizontal: 10),
                 margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
                   color: Colors.grey,
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(
                       width: 15,
@@ -116,16 +134,36 @@ class _BookingListState extends State<BookingList> {
                     SizedBox(
                       width: 10,
                     ),
-                    // title
-                    Text(
-                      '111111111',
-                    ),
-                    // 金额
                     Expanded(
-                        child: Text(
+                        child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // title
+                        Text(
+                          markTitle,
+                          style: TextStyle(fontSize: 14, color: Colors.black),
+                        ),
+                        SizedBox(
+                          height: 3,
+                        ),
+                        // remark
+                        (booking.remark ?? '').isNotEmpty
+                            ? Text(
+                                booking.remark,
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.black),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            : Container()
+                      ],
+                    )),
+                    // 金额
+                    Text(
                       booking.money.toString(),
                       textAlign: TextAlign.right,
-                    )),
+                    ),
                     SizedBox(
                       width: 15,
                     ),
